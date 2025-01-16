@@ -1,0 +1,12 @@
+plugins:
+  - name: ping
+    config:
+      count: 3
+      ttl: 128
+      interval: 100ms
+      timeout: 2s
+      privileged: true
+      packet_loss: 70
+      targets:
+#        - addr: www.baidu.com
+        - addr: www.google.com

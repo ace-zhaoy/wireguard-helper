@@ -1,0 +1,73 @@
+#mode: round_robin # Options: round_robin or best
+detection_interval: 3s
+default_config:
+  tpl_file: ./config/tpl/tunnel.conf.tpl
+  post_connection_wait: 5s
+  post_disconnection_wait: 3s
+#  plugins:
+#    - name: ip_increment # Plugin name
+#      config:
+#        start_time: "2024-11-14T10:00:00+08:00" # Start calculation time
+#        increment_cycle: 24h # Auto-increment cycle
+  tpl_data:
+    allowedips: "0.0.0.0/1, 128.0.0.0/1"
+    privatekey: <insert_your_private_key_here>
+tunnels:
+  - name: us-hou
+    #tpl_file: ./tpl/us-hou.conf.tpl # Default: ./config/tpl/tunnel.conf.tpl
+    #post_connection_wait: 5s # Wait time after connection (PostUp)
+    #post_disconnection_wait: 3s # Wait time after disconnection (PostDown)
+    #plugins:
+    #  - name: ip_increment # Plugin name
+    #    config:
+    #      start_time: "2024-11-14T02:00:00Z" # Start calculation time
+    #      increment_cycle: 24h # Auto-increment cycle
+    addrs:
+      - 5.182.103.46
+      - 5.182.103.173
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: 1g84fGxVJokKXdMYEJKjN6/opyYN/YSHmrMyw0v6VnM=
+  - name: uk-man
+    addrs:
+      - 172.102.212.44
+      - 172.102.212.171
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: 9R8He1cP8Laf5MT58FcaEYtPW/qnN3M9MQThIXOIvHs=
+  - name: hk-hkg
+    addrs:
+      - 203.32.7.25
+      - 203.32.7.152
+      - 185.202.222.46
+      - 185.202.222.173
+      - 168.91.92.46
+      - 168.91.92.173
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: JYHdktdtuM7inbtsxRKSDpnBVTWQ5+QLZ/cWWmf4VRg=
+  - name: jp-tok
+    addrs:
+      - 194.147.59.46
+      - 194.147.59.173
+      - 81.22.36.46
+      - 81.22.36.173
+      - 45.135.184.45
+      - 45.135.184.172
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: YJSjrc/WWOjQUyUi4iYcHb7LsWWoCY+2fK8/8VtC/BY=
+  - name: tw-tai
+    addrs:
+      - 89.117.42.82
+      - 89.117.42.209
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: P0vaGUOUE7V5bbGOYY2WgQeZnTZEHvIr+dfebU7W4Ao=
+  - name: th-bkk
+    addrs:
+      - 103.176.152.84
+      - 103.176.152.184
+    tpl_data:
+      privatekey: <insert_your_private_key_here>
+      publickey: OoFY46j/w4uQFyFu/OQ/h3x+ymJ1DJ4UR1fwGNxOxk0=

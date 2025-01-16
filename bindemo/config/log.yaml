@@ -1,0 +1,3 @@
+level: info # debug, info, warn, error
+encoding: console # console, json
+add_caller: false
