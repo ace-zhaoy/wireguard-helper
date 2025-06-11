@@ -76,7 +76,10 @@ func (t *TunnelManager) Connect(ctx context.Context) (err error) {
 		default:
 		}
 		checked, err1 := t.detection.Check()
-		errors.Check(err1)
+		if err1 != nil {
+			log.Error("detection check error: %+v", err1)
+			checked = true
+		}
 		if checked {
 			time.Sleep(t.config.DetectionInterval)
 			continue
