@@ -13,3 +13,9 @@ func (t *Tunnel) connect(configFile string) error {
 	cmd := exec.Command("WireGuard.exe", "/installtunnelservice", configFile)
 	return errors.WithStack(cmd.Run())
 }
+
+func (t *Tunnel) disconnect(name string) error {
+	cmd := exec.Command("WireGuard.exe", "/uninstalltunnelservice", name)
+	err := cmd.Run()
+	return errors.WithStack(err)
+}

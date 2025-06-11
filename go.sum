@@ -1,5 +1,5 @@
-github.com/ace-zhaoy/errors v1.1.1 h1:sZk/QAKPkziznjt1wSd9Y92/PtEMmm7XZL1J0OFfGes=
-github.com/ace-zhaoy/errors v1.1.1/go.mod h1:6EeI3Q+n4cQn7GAZUYa2OCN9/w1HCgO8trdVOawnJXE=
+github.com/ace-zhaoy/errors v1.2.0 h1:MFX06oUzfkiE9OfUmba31AeDDrb3WDwr8SJIeYceuAE=
+github.com/ace-zhaoy/errors v1.2.0/go.mod h1:6EeI3Q+n4cQn7GAZUYa2OCN9/w1HCgO8trdVOawnJXE=
 github.com/ace-zhaoy/glog v1.0.0 h1:dXkBm1KavesaJStJcl2PVCtdDFWUSJ1uVDyyaWTumeA=
 github.com/ace-zhaoy/glog v1.0.0/go.mod h1:i6qEqa1ljrledIQBtszXeJDx7RTZA4ovkG6X6yjbpt0=
 github.com/ace-zhaoy/go-utils v1.2.6 h1:VOCpI+1LyX09Uinn41J8fxwscVle6Xw6LxNikV3eJsg=
@@ -11,8 +11,6 @@ github.com/cpuguy83/go-md2man/v2 v2.0.4/go.mod h1:tgQtvFlXSQOSOSIRvRPT7W67SCa46t
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
-github.com/fatih/structs v1.1.0 h1:Q7juDM0QtcnhCpeyLGQKyg4TOIghuNXrkL32pHAUMxo=
-github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/frankban/quicktest v1.14.6 h1:7Xjx+VpznH+oBnejlPUj8oUpdxnVs4f8XU8WnHkI4W8=
 github.com/fsnotify/fsnotify v1.7.0 h1:8JEhPFa5W2WU7YfeZzPNqzMP6Lwt7L2715Ggo0nosvA=
 github.com/fsnotify/fsnotify v1.7.0/go.mod h1:40Bi/Hjc2AVfZrqy+aj+yEI+/bRxZnMJyTJwOpGvigM=

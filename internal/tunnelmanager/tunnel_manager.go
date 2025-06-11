@@ -4,7 +4,6 @@ import (
 	"context"
 	"github.com/ace-zhaoy/errors"
 	"github.com/ace-zhaoy/glog/log"
-	"github.com/ace-zhaoy/go-utils/ucondition"
 	"github.com/ace-zhaoy/go-utils/ujson"
 	"github.com/ace-zhaoy/wireguard-helper/internal/detection"
 	"github.com/ace-zhaoy/wireguard-helper/internal/tunnel"
@@ -13,10 +12,11 @@ import (
 )
 
 type TunnelInterface interface {
-	LoadConfig(conf config.Config) (err error)
-	Connect() (err error)
-	PostConnectionWait()
-	PostDisconnectionWait()
+	LoadConfig(ctx context.Context, conf config.Config) (err error)
+	Connect(ctx context.Context) (err error)
+	Disconnect(ctx context.Context) (err error)
+	PostConnectionWait(ctx context.Context)
+	PostDisconnectionWait(ctx context.Context)
 }
 
 type TunnelManager struct {
@@ -67,33 +67,63 @@ func (t *TunnelManager) LoadConfig(conf Config) (err error) {
 
 func (t *TunnelManager) Connect(ctx context.Context) (err error) {
 	defer errors.Recover(func(e error) { err = e })
+
+	t.Disconnect()
 	defer t.Disconnect()
+
 	tunnelLen, i := len(t.tunnels), 0
-	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-		}
+	checkChan := make(chan bool, 0)
+	defer close(checkChan)
+
+	checkFunc := func() bool {
 		checked, err1 := t.detection.Check()
 		if err1 != nil {
 			log.Error("detection check error: %+v", err1)
 			checked = true
 		}
-		if checked {
-			time.Sleep(t.config.DetectionInterval)
-			continue
+		return checked
+	}
+
+	var tun TunnelInterface
+
+	for {
+		go func() {
+			checked := checkFunc()
+			checkChan <- checked
+		}()
+
+		select {
+		case <-ctx.Done():
+			if tun != nil {
+				_ = tun.Disconnect(ctx)
+			}
+			return
+		case checked := <-checkChan:
+			if checked {
+				select {
+				case <-ctx.Done():
+					if tun != nil {
+						_ = tun.Disconnect(ctx)
+					}
+					return
+				case <-time.After(t.config.DetectionInterval):
+				}
+				continue
+			}
 		}
-		t.Disconnect()
+
+		if tun != nil {
+			_ = tun.Disconnect(ctx)
+			tun.PostDisconnectionWait(ctx)
+		}
 
 		i %= tunnelLen
-		j := ucondition.If(i == 0, tunnelLen-1, i-1)
-		perTunnel, tun := t.tunnels[j], t.tunnels[i]
-		i++
-		perTunnel.PostDisconnectionWait()
-		err = tun.Connect()
+		err = t.tunnels[i].Connect(ctx)
 		errors.Check(err)
-		tun.PostConnectionWait()
+		t.tunnels[i].PostConnectionWait(ctx)
+
+		tun = t.tunnels[i]
+		i++
 	}
 }
 
@@ -102,6 +132,11 @@ func (t *TunnelManager) Disconnect() {
 	if !connected {
 		return
 	}
+
 	log.Info("disconnect %s", interfaceName)
-	_ = t.disconnect(interfaceName)
+
+	err := t.disconnect(interfaceName)
+	if err != nil {
+		log.Error("disconnect error: %v", err)
+	}
 }

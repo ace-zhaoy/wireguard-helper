@@ -1,6 +1,7 @@
 package tunnel
 
 import (
+	"context"
 	"fmt"
 	"github.com/ace-zhaoy/errors"
 	"github.com/ace-zhaoy/glog/log"
@@ -16,25 +17,32 @@ import (
 )
 
 type Tunnel struct {
+	name    string
 	config  config.Config
 	plugins []contract.Plugin
 }
 
 func NewTunnel(conf config.Config) (*Tunnel, error) {
 	t := &Tunnel{}
-	err := t.LoadConfig(conf)
+	err := t.LoadConfig(context.Background(), conf)
 	return t, err
 }
 
-func (t *Tunnel) PostConnectionWait() {
-	time.Sleep(t.config.PostConnectionWait)
+func (t *Tunnel) PostConnectionWait(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(t.config.PostConnectionWait):
+	}
 }
 
-func (t *Tunnel) PostDisconnectionWait() {
-	time.Sleep(t.config.PostDisconnectionWait)
+func (t *Tunnel) PostDisconnectionWait(ctx context.Context) {
+	select {
+	case <-ctx.Done():
+	case <-time.After(t.config.PostDisconnectionWait):
+	}
 }
 
-func (t *Tunnel) LoadConfig(conf config.Config) (err error) {
+func (t *Tunnel) LoadConfig(_ context.Context, conf config.Config) (err error) {
 	defer errors.Recover(func(e error) { err = errors.Wrap(e, "param: %v", ujson.ToJson(conf)) })
 	pls, err := t.loadPlugins(conf)
 	errors.Check(err)
@@ -62,13 +70,15 @@ func (t *Tunnel) tplParse(tunnelName, tplFile string, data map[string]any) (conf
 	defer errors.Recover(func(e error) { err = e })
 	tmpl, err := template.ParseFiles(tplFile)
 	errors.Check(errors.WithStack(err))
-	f, err := os.CreateTemp("", fmt.Sprintf("%s-*.conf", tunnelName))
-	errors.Check(errors.WithStack(err))
+	dir, err := os.MkdirTemp("", "wireguard-helper-tunnel")
+	errors.CheckWithStack(err)
+	configFile = fmt.Sprintf("%s/%s.conf", dir, tunnelName)
+	f, err := os.Create(configFile)
+	errors.CheckWithStack(err)
 	defer f.Close()
 	err = tmpl.Execute(f, data)
 	errors.Check(errors.WithStack(err))
-	tplFile = f.Name()
-	return tplFile, nil
+	return
 }
 
 func (t *Tunnel) connectHandler() entity.Handler {
@@ -80,6 +90,7 @@ func (t *Tunnel) connectHandler() entity.Handler {
 		dc.TplData["name"] = dc.Name
 		dc.TplData["addr"] = dc.Addr
 		log.Debug("tpl file %s, data: %s", ctx.DirtyConfig.TplFile, ujson.ToJson(dc.TplData))
+		t.name = dc.Name
 		configFile, err := t.tplParse(dc.Name, dc.TplFile, dc.TplData)
 		errors.Check(err)
 		log.Debug("connect config file: %s", configFile)
@@ -90,18 +101,43 @@ func (t *Tunnel) connectHandler() entity.Handler {
 	}
 }
 
-func (t *Tunnel) Connect() (err error) {
+func (t *Tunnel) Connect(ctx context.Context) (err error) {
 	defer errors.Recover(func(e error) { err = e })
 	handlers := make([]entity.Handler, 0, len(t.plugins)+1)
 	for _, p := range t.plugins {
 		handlers = append(handlers, p.Handler)
 	}
 	handlers = append(handlers, t.connectHandler())
-	dirtyConfig := t.config.Copy()
-	log.Debug("tunnel config: %s", ujson.ToJson(t.config))
-	log.Debug("tunnel dirty config: %s", ujson.ToJson(dirtyConfig))
-	ctx := entity.NewContext(t.config, *dirtyConfig, handlers)
-	ctx.Next()
-	errors.Check(errors.WithStack(ctx.Err))
+	waitChan := make(chan error)
+	defer close(waitChan)
+
+	go func() {
+		dirtyConfig := t.config.Copy()
+		log.Debug("tunnel config: %s", ujson.ToJson(t.config))
+		log.Debug("tunnel dirty config: %s", ujson.ToJson(dirtyConfig))
+		entCtx := entity.NewContext(t.config, *dirtyConfig, handlers)
+		entCtx.Next()
+		waitChan <- errors.WithStack(entCtx.Err)
+
+		select {
+		case <-ctx.Done():
+			err1 := t.disconnect(dirtyConfig.Name)
+			if err1 != nil {
+				log.Error("disconnect error: %v", err1)
+			}
+		default:
+		}
+	}()
+
+	select {
+	case <-ctx.Done():
+	case err1 := <-waitChan:
+		errors.Check(err1)
+	}
 	return
+}
+
+func (t *Tunnel) Disconnect(_ context.Context) (err error) {
+	log.Info("disconnect: %s", t.name)
+	return t.disconnect(t.name)
 }
