@@ -5,6 +5,7 @@ import (
 	"github.com/ace-zhaoy/errors"
 	"github.com/ace-zhaoy/glog/log"
 	"github.com/ace-zhaoy/go-utils/ujson"
+	"github.com/ace-zhaoy/go-utils/uslice"
 	"github.com/ace-zhaoy/wireguard-helper/internal/detection"
 	"github.com/ace-zhaoy/wireguard-helper/internal/tunnel"
 	"github.com/ace-zhaoy/wireguard-helper/internal/tunnel/config"
@@ -55,6 +56,9 @@ func (t *TunnelManager) LoadConfig(conf Config) (err error) {
 			log.Debug("load tunnel: %s %s", confCopy.Name, confCopy.Addr)
 			tun, err1 := tunnel.NewTunnel(*confCopy)
 			errors.Check(err1)
+			if len(conf.ConnectTunnelNames) > 0 && !uslice.Contains(conf.ConnectTunnelNames, tun.Name()) {
+				continue
+			}
 			tunnels = append(tunnels, tun)
 		}
 	}

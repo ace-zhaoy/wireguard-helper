@@ -6,10 +6,11 @@ import (
 )
 
 type Config struct {
-	Mode              string         `json:"mode" yaml:"mode"`
-	DetectionInterval time.Duration  `json:"detection_interval" yaml:"detection_interval"`
-	DefaultConfig     config.Config  `json:"default_config" yaml:"default_config"`
-	Tunnels           []TunnelConfig `json:"tunnels" yaml:"tunnels"`
+	Mode               string         `json:"mode" yaml:"mode"`
+	DetectionInterval  time.Duration  `json:"detection_interval" yaml:"detection_interval"`
+	ConnectTunnelNames []string       `json:"connect_tunnel_names" yaml:"connect_tunnel_names"`
+	DefaultConfig      config.Config  `json:"default_config" yaml:"default_config"`
+	Tunnels            []TunnelConfig `json:"tunnels" yaml:"tunnels"`
 }
 
 type TunnelConfig struct {

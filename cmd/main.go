@@ -21,6 +21,7 @@ var (
 	logLevel      string
 	detectionObj  = detection.NewDetection()
 	tunnelManager *tunnelmanager.TunnelManager
+	tunnelNames   []string
 )
 
 func main() {
@@ -35,6 +36,7 @@ func main() {
 	rootCmd := &cobra.Command{}
 	rootCmd.Flags().StringVarP(&configPath, "config", "c", "./config", "config path")
 	rootCmd.Flags().StringVarP(&logLevel, "log-level", "l", "", "log level, options: debug, info, warn, error")
+	rootCmd.Flags().StringSliceVarP(&tunnelNames, "tunnel-name", "t", nil, "tunnel name, if not set, all tunnels will be used")
 	rootCmd.RunE = func(cmd *cobra.Command, args []string) (err error) {
 		defer errors.Recover(func(e error) { err = errors.Wrap(e, "param: %v", args) })
 		errors.Check(InitWithConfigPath(ctx, configPath))
@@ -90,6 +92,9 @@ func InitTunnelManagerWithConfig(_ context.Context, config *gviper.Config) {
 	var c tunnelmanager.Config
 	config.BindAndListen("tunnel_manager", &c, func(_ *viper.Viper) (err error) {
 		defer errors.Recover(func(e error) { err = e })
+		if len(tunnelNames) > 0 {
+			c.ConnectTunnelNames = tunnelNames
+		}
 		if tunnelManager == nil {
 			tunnelManager, err = tunnelmanager.NewTunnelManager(c, detectionObj)
 			errors.Check(err)
