@@ -1,5 +1,7 @@
 #mode: round_robin # Options: round_robin or best
 detection_interval: 3s
+connect_tunnel_names:
+  - uk-man
 default_config:
   tpl_file: ./config/tpl/tunnel.conf.tpl
   post_connection_wait: 5s

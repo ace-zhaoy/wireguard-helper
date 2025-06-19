@@ -23,9 +23,13 @@ type Tunnel struct {
 }
 
 func NewTunnel(conf config.Config) (*Tunnel, error) {
-	t := &Tunnel{}
+	t := &Tunnel{name: conf.Name}
 	err := t.LoadConfig(context.Background(), conf)
 	return t, err
+}
+
+func (t *Tunnel) Name() string {
+	return t.name
 }
 
 func (t *Tunnel) PostConnectionWait(ctx context.Context) {
@@ -121,7 +125,7 @@ func (t *Tunnel) Connect(ctx context.Context) (err error) {
 
 		select {
 		case <-ctx.Done():
-			err1 := t.disconnect(dirtyConfig.Name)
+			err1 := t.Disconnect(ctx)
 			if err1 != nil {
 				log.Error("disconnect error: %v", err1)
 			}
